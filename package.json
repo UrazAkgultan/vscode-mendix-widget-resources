@@ -10,16 +10,55 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:mendix-widget-resources.helloWorld"
+    "*"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "mendix-widget-resources.helloWorld",
-        "title": "Hello World"
+        "command": "widget-resources-explorer.createTerminal",
+        "title": "Create terminal"
+      },
+      {
+        "command": "widget-resources-explorer.bumpPluggableWidgetVersion",
+        "title": "Bump version"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "widget-resources-explorer",
+          "title": "Widget Resources",
+          "icon": "resources/mx.svg"
+        }
+      ]
+    },
+    "views": {
+      "widget-resources-explorer": [
+        {
+          "id": "pluggableWidgets",
+          "name": "Pluggable Widgets"
+        },
+        {
+          "id": "jsActions",
+          "name": "JS Actions"
+        }
+      ]
+    },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "widget-resources-explorer.bumpPluggableWidgetVersion",
+          "when": "view == pluggableWidgets && viewItem == pluggableWidget",
+          "group": "version"
+        },
+        {
+          "command": "widget-resources-explorer.createTerminal",
+          "when": "view == pluggableWidgets && viewItem == pluggableWidget",
+          "group": "terminal"
+        }
+      ]
+    }
   },
   "scripts": {
     "prepare": "husky install",
