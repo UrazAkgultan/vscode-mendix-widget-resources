@@ -1,0 +1,1 @@
+# Mendix `widget-resources` extension
