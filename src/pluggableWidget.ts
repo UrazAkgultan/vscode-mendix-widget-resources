@@ -1,81 +1,51 @@
-/* eslint-disable no-undef */
-import * as vscode from "vscode";
-import * as path from "path";
-import * as fs from "fs";
+import { PluggableWidgetPlatformType, AtlasFolderProps } from "./types";
 
-import { pathExists } from "./helpers/fileHelper";
-
-import { PluggableWidgetPlatformType } from "./types";
-
-import { ContentProvider, ContentItem } from "./contentProvider";
-
-export class PluggableWidgetsProvider extends ContentProvider {
-    readonly pluggableWidgetPath: string;
-
-    constructor(workspaceRoot: string) {
-        super();
-        this.pluggableWidgetPath = path.join(workspaceRoot, "packages/pluggableWidgets");
-    }
-
-    getChildren(
-        element?: ContentItem | PluggableWidget | PluggableWidgetPlatformItem
-    ): vscode.ProviderResult<ContentItem[]> {
-        if (element) {
-            return this._getPluggableWidgetsInWorkspace().filter(
-                widget => widget.platform === (element as PluggableWidgetPlatformItem).widgetPlatform
-            );
-        }
-
-        return Promise.resolve([new PluggableWidgetPlatformItem("web"), new PluggableWidgetPlatformItem("native")]);
-    }
-
-    private _getPluggableWidgetsInWorkspace(): PluggableWidget[] {
-        const folders = fs.readdirSync(this.pluggableWidgetPath);
-
-        return folders
-            .map(folder => {
-                const widgetPath: string = path.join(this.pluggableWidgetPath, folder);
-                const widgetPackageJSONPath: string = path.join(widgetPath, "package.json");
-
-                if (!pathExists(widgetPackageJSONPath)) {
-                    return new PluggableWidget("", "", undefined);
-                }
-
-                const widgetPackageJSONContent = JSON.parse(fs.readFileSync(widgetPackageJSONPath, "utf-8"));
-                const widgetPackageNameSplit = widgetPackageJSONContent.name.split("-");
-                const widgetPlatform = widgetPackageNameSplit.slice(-1)[0];
-
-                return new PluggableWidget(
-                    widgetPackageJSONContent.widgetName,
-                    widgetPackageJSONContent.version,
-                    widgetPlatform,
-                    widgetPath,
-                    {
-                        command: "extensions.openFile",
-                        title: "",
-                        arguments: [widgetPackageJSONPath]
-                    }
-                );
-            })
-            .filter(widget => widget.name !== "");
-    }
+export default interface PluggableWidget {
+    name: string;
+    version: string;
+    platform: PluggableWidgetPlatformType;
+    widgetPath: string;
+    atlasPaths?: AtlasFolderProps;
 }
 
-export class PluggableWidgetPlatformItem extends ContentItem {
-    constructor(public readonly widgetPlatform: PluggableWidgetPlatformType) {
-        super(widgetPlatform!, "pluggableWidgetPlatformCategory", vscode.TreeItemCollapsibleState.Collapsed);
-    }
-}
+export class PluggableWidgetBuilder {
+    private readonly _pluggableWidget: PluggableWidget;
 
-export class PluggableWidget extends ContentItem {
-    constructor(
-        public readonly name: string,
-        public readonly version: string,
-        public readonly platform: PluggableWidgetPlatformType,
-        public readonly widgetPath?: string,
-        public readonly command?: vscode.Command
-    ) {
-        super(name, "pluggableWidget", vscode.TreeItemCollapsibleState.Collapsed);
-        this.description = `v${version}`;
+    constructor(name: string, version: string, platform: PluggableWidgetPlatformType, widgetPath: string) {
+        this._pluggableWidget = {
+            name,
+            version,
+            platform,
+            widgetPath
+        };
+    }
+
+    name(name: string): PluggableWidgetBuilder {
+        this._pluggableWidget.name = name;
+        return this;
+    }
+
+    version(version: string): PluggableWidgetBuilder {
+        this._pluggableWidget.version = version;
+        return this;
+    }
+
+    platform(platform: PluggableWidgetPlatformType): PluggableWidgetBuilder {
+        this._pluggableWidget.platform = platform;
+        return this;
+    }
+
+    widgetPath(widgetPath: string): PluggableWidgetBuilder {
+        this._pluggableWidget.widgetPath = widgetPath;
+        return this;
+    }
+
+    atlasPaths(atlasPaths: AtlasFolderProps): PluggableWidgetBuilder {
+        this._pluggableWidget.atlasPaths = atlasPaths;
+        return this;
+    }
+
+    build(): PluggableWidget {
+        return this._pluggableWidget;
     }
 }

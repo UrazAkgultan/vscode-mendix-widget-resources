@@ -9,3 +9,5 @@ export const pathExists = (p: string): string | null => {
 
     return p;
 };
+
+export const newFileFromTemplate = (template: string): void => {};

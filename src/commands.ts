@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { PluggableWidget } from "./pluggableWidget";
+import PluggableWidget from "./pluggableWidget";
 import { getVersionFilePaths, readVersionFiles } from "./lib/readFile";
 import { writeVersionFiles } from "./lib/writeFile";
 import { join } from "path";
@@ -18,14 +18,14 @@ export const bumpPluggableWidgetVersion = async (pluggableWidget: PluggableWidge
         return;
     }
 
-    const paths = getVersionFilePaths(pluggableWidget.widgetPath!);
+    const paths = getVersionFilePaths(pluggableWidget.widgetPath);
     const files = readVersionFiles(paths);
     files.pkgJSON.version = answer;
     writeVersionFiles(files, paths);
 
-    await openFile(join(pluggableWidget.widgetPath!, "package.json"));
-    await openFile(join(pluggableWidget.widgetPath!, "CHANGELOG.md"));
-    await openFile(join(pluggableWidget.widgetPath!, "src", "package.xml"));
+    await openFile(join(pluggableWidget.widgetPath, "package.json"));
+    await openFile(join(pluggableWidget.widgetPath, "CHANGELOG.md"));
+    await openFile(join(pluggableWidget.widgetPath, "src", "package.xml"));
 };
 
 export const openFile = async (filePath: string, preview: boolean = false): Promise<void> => {

@@ -1,2 +1,4 @@
 .vscode
 out
+src/templates
+src/snippets

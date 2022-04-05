@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import * as vscode from "vscode";
-import { PluggableWidget } from "./pluggableWidget";
+import PluggableWidget from "./pluggableWidget";
 import { readdirSync } from "fs";
 
 import { pathExists } from "./helpers/fileHelper";
@@ -15,61 +15,68 @@ export default class Terminal {
 
     private constructor(private readonly _terminalId: number, private readonly _pluggableWidget: PluggableWidget) {
         this.activeTerminal = vscode.window.createTerminal(`Ext Terminal #${_terminalId} - (${_pluggableWidget.name})`);
-        this.activeTerminal.sendText(`cd ${_pluggableWidget.widgetPath}`);
+    }
+
+    updateEnvironment(key: string, value: string): void {
+        this.runCommand(`export ${key}=${value}`);
+    }
+
+    changeDirectory(path: string): void {
+        if (!pathExists(path)) {
+            throw new Error(`The path could not be found\nPath: ${path}`);
+        }
+
+        this.runCommand(`cd ${path}`);
+    }
+
+    clear(): void {
+        this.runCommand("clear");
+    }
+
+    private runCommand(command: string): void {
+        this.activeTerminal.sendText(command);
+        if (this.activeTerminal.exitStatus && this.activeTerminal.exitStatus.code) {
+            throw new Error(
+                `The command could not be run.\nExit code: ${this.activeTerminal.exitStatus.code}\nCommand: ${command}`
+            );
+        }
+    }
+
+    getCurrentPluggableWidget(): PluggableWidget {
+        return this._pluggableWidget;
+    }
+
+    private async getMXTestProjectPath(): Promise<string | undefined> {
+        let mxAppPath: string | undefined = process.env.MX_APP_PATH;
+
+        if (!mxAppPath) {
+            mxAppPath = await vscode.window.showInputBox({
+                placeHolder: "Mendix test projects path",
+                validateInput: value => (pathExists(value) === null ? "The path could not be found." : null)
+            });
+
+            if (!mxAppPath) {
+                throw new Error("Mendix project path could not be found.");
+            }
+        }
+
+        this.updateEnvironment("MX_APP_PATH", mxAppPath);
+
+        const folders = readdirSync(mxAppPath);
+        const selectedFolder = await vscode.window.showQuickPick(folders);
+        return selectedFolder && join(mxAppPath, selectedFolder);
     }
 
     private async setUpTerminal(): Promise<void> {
         this._activeMxProjectPath = await this.getMXTestProjectPath();
 
         if (!this._activeMxProjectPath) {
-            throw new Error("No MX test project.");
+            throw new Error("The test project could not be found.");
         }
 
         this.updateEnvironment("MX_PROJECT_PATH", this._activeMxProjectPath);
-        this.updateEnvironment("MX_NMR_PATH", this._activeMxProjectPath);
-
-        this.activeTerminal.sendText("clear");
-    }
-
-    private async getMXTestProjectPath(): Promise<string | undefined> {
-        const mxAppPath: string | undefined = process.env.MX_APP_PATH;
-        let mxNMRPath: string | undefined = process.env.MX_NMR_PATH;
-
-        if (mxNMRPath) {
-            if (!pathExists(mxNMRPath)) {
-                mxNMRPath = "";
-            }
-        }
-
-        let mxTestProjectPathAnswer: string | undefined;
-
-        if (mxAppPath) {
-            const folders = readdirSync(mxAppPath!);
-
-            const selectedFolder = await vscode.window.showQuickPick(folders);
-            mxTestProjectPathAnswer = selectedFolder && join(mxAppPath, selectedFolder);
-        } else {
-            mxTestProjectPathAnswer = await vscode.window.showInputBox({
-                placeHolder: "Mendix test project path",
-                value: mxNMRPath,
-                validateInput: value => (pathExists(value) === null ? "Path couldn't find." : null)
-            });
-        }
-
-        if (!mxTestProjectPathAnswer) {
-            return undefined;
-        }
-
-        return mxTestProjectPathAnswer;
-    }
-
-    updateEnvironment(key: string, value: string): string {
-        this.activeTerminal.sendText(`export ${key}=${value}`);
-        return value;
-    }
-
-    getCurrentPluggableWidget(): PluggableWidget {
-        return this._pluggableWidget;
+        this.changeDirectory(this._pluggableWidget.widgetPath);
+        this.clear();
     }
 
     static async createTerminal(pluggableWidget: PluggableWidget): Promise<Terminal> {

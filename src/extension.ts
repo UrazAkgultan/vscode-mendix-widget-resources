@@ -1,8 +1,7 @@
 /* eslint-disable no-undef */
 import * as vscode from "vscode";
 import { openFile, createTerminal, bumpPluggableWidgetVersion } from "./commands";
-
-import { PluggableWidgetsProvider, PluggableWidget } from "./pluggableWidget";
+import { PluggableWidgetsProvider, PluggableWidgetItem } from "./providers";
 
 export function activate(_: vscode.ExtensionContext): void {
     const rootPath =
@@ -15,18 +14,21 @@ export function activate(_: vscode.ExtensionContext): void {
         return;
     }
 
-    vscode.commands.registerCommand("extensions.openFile", async widgetPackageJson =>
-        openFile(widgetPackageJson, true)
-    );
+    vscode.commands.registerCommand("extensions.openFile", async (folderPath, isFile = false) => {
+        if (isFile) {
+            openFile(folderPath, true);
+        }
+    });
 
-    vscode.commands.registerCommand("widget-resources-explorer.createTerminal", (pluggableWidget: PluggableWidget) =>
-        createTerminal(pluggableWidget)
+    vscode.commands.registerCommand(
+        "widget-resources-explorer.createTerminal",
+        (pluggableWidgetItem: PluggableWidgetItem) => createTerminal(pluggableWidgetItem.pluggableWidget)
     );
 
     vscode.commands.registerCommand(
         "widget-resources-explorer.bumpPluggableWidgetVersion",
-        async (pluggableWidget: PluggableWidget) => {
-            await bumpPluggableWidgetVersion(pluggableWidget);
+        async (pluggableWidgetItem: PluggableWidgetItem) => {
+            await bumpPluggableWidgetVersion(pluggableWidgetItem.pluggableWidget);
             pluggableWidgetProvider.refresh();
         }
     );
