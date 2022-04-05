@@ -1,0 +1,27 @@
+{
+    "trailingComma": "none",
+    "useTabs": false,
+    "tabWidth": 4,
+    "semi": true,
+    "singleQuote": false,
+    "printWidth": 120,
+    "bracketSpacing": true,
+    "bracketSameLine": false,
+    "arrowParens": "avoid",
+    "proseWrap": "always",
+    "overrides": [
+        {
+            "files": "*.md",
+            "options": {
+                "proseWrap": "preserve",
+                "tabWidth": 2
+            }
+        },
+        {
+            "files": ["package.json", "package.json"],
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ]
+}

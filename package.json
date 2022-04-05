@@ -1,45 +1,96 @@
 {
-	"name": "mendix-widget-resources",
-	"displayName": "Mendix Widget Resources",
-	"description": "",
-	"version": "0.0.1",
-	"engines": {
-		"vscode": "^1.66.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onCommand:mendix-widget-resources.helloWorld"
-	],
-	"main": "./out/extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "mendix-widget-resources.helloWorld",
-				"title": "Hello World"
-			}
-		]
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile && npm run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/vscode": "^1.66.0",
-		"@types/glob": "^7.2.0",
-		"@types/mocha": "^9.1.0",
-		"@types/node": "14.x",
-		"@typescript-eslint/eslint-plugin": "^5.16.0",
-		"@typescript-eslint/parser": "^5.16.0",
-		"eslint": "^8.11.0",
-		"glob": "^7.2.0",
-		"mocha": "^9.2.2",
-		"typescript": "^4.5.5",
-		"@vscode/test-electron": "^2.1.3"
-	}
+  "name": "mendix-widget-resources",
+  "displayName": "Mendix Widget Resources",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.66.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "widget-resources-explorer.createTerminal",
+        "title": "Create terminal"
+      },
+      {
+        "command": "widget-resources-explorer.bumpPluggableWidgetVersion",
+        "title": "Bump version"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "widget-resources-explorer",
+          "title": "Widget Resources",
+          "icon": "resources/mx.svg"
+        }
+      ]
+    },
+    "views": {
+      "widget-resources-explorer": [
+        {
+          "id": "pluggableWidgets",
+          "name": "Pluggable Widgets"
+        },
+        {
+          "id": "jsActions",
+          "name": "JS Actions"
+        }
+      ]
+    },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "widget-resources-explorer.bumpPluggableWidgetVersion",
+          "when": "view == pluggableWidgets && viewItem == pluggableWidget",
+          "group": "version"
+        },
+        {
+          "command": "widget-resources-explorer.createTerminal",
+          "when": "view == pluggableWidgets && viewItem == pluggableWidget",
+          "group": "terminal"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "prepare": "husky install",
+    "format": "pretty-quick --staged",
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^16.2.3",
+    "@commitlint/config-conventional": "^16.2.1",
+    "@types/glob": "^7.2.0",
+    "@types/mocha": "^9.1.0",
+    "@types/node": "14.x",
+    "@types/vscode": "^1.66.0",
+    "@typescript-eslint/eslint-plugin": "^5.16.0",
+    "@typescript-eslint/parser": "^5.16.0",
+    "@vscode/test-electron": "^2.1.3",
+    "eslint": "^8.11.0",
+    "glob": "^7.2.0",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.3.7",
+    "mocha": "^9.2.2",
+    "prettier": "2.6.2",
+    "pretty-quick": "^3.1.3",
+    "typescript": "^4.5.5"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  }
 }

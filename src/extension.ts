@@ -1,26 +1,43 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+/* eslint-disable no-undef */
+import * as vscode from "vscode";
+import { openFile, createTerminal, bumpPluggableWidgetVersion } from "./commands";
+import { PluggableWidgetsProvider, PluggableWidgetItem } from "./providers";
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
-	
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "mendix-widget-resources" is now active!');
+export function activate(_: vscode.ExtensionContext): void {
+    const rootPath =
+        vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
+            ? vscode.workspace.workspaceFolders[0].uri.fsPath
+            : undefined;
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('mendix-widget-resources.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Mendix Widget Resources!');
-	});
+    if (!rootPath) {
+        vscode.window.showErrorMessage("Empty workspace");
+        return;
+    }
 
-	context.subscriptions.push(disposable);
+    vscode.commands.registerCommand("extensions.openFile", async (folderPath, isFile = false) => {
+        if (isFile) {
+            openFile(folderPath, true);
+        }
+    });
+
+    vscode.commands.registerCommand(
+        "widget-resources-explorer.createTerminal",
+        (pluggableWidgetItem: PluggableWidgetItem) => createTerminal(pluggableWidgetItem.pluggableWidget)
+    );
+
+    vscode.commands.registerCommand(
+        "widget-resources-explorer.bumpPluggableWidgetVersion",
+        async (pluggableWidgetItem: PluggableWidgetItem) => {
+            await bumpPluggableWidgetVersion(pluggableWidgetItem.pluggableWidget);
+            pluggableWidgetProvider.refresh();
+        }
+    );
+
+    const pluggableWidgetProvider = new PluggableWidgetsProvider(rootPath);
+    vscode.window.registerTreeDataProvider("pluggableWidgets", pluggableWidgetProvider);
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate(): void {
+    console.log("");
+}
